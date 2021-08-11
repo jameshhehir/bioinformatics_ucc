@@ -1,0 +1,32 @@
+library(yeastExpData)
+data(litG)
+litG
+
+litG_degs <- graph::degree(litG)
+max(litG_degs)
+min(litG_degs)
+mean(litG_degs)
+which.max(litG_degs)
+
+graph::adj(litG, "YPR119W")
+
+litG_comp <- RBGL::connectedComp(litG)
+length(litG_comp)
+
+litG_compsize <- sapply(litG_comp, length)
+component <- which.max(litG_compsize)
+
+library(Rgraphviz)
+litG_sub <- subGraph(litG_comp[[52]], litG)
+plot(litG_sub)
+
+Rgraphviz::layoutGraph(litG_sub)
+Rgraphviz::renderGraph(Rgraphviz::layoutGraph(litG_sub, layoutType = "neato"))
+
+load("GeneRegNetwork.rdata")
+x                       
+graph::degree(x)
+
+plot(x)
+
+RBGL::connectedComp(x)

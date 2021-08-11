@@ -1,0 +1,175 @@
+load("assignment2.RData")
+install.packages("BiocManager")
+if (!requireNamespace("igraph", quietly = TRUE))
+  install.packages("igraph")
+BiocManager::install("graph")
+BiocManager::install("RBGL")
+BiocManager::install("Rgraphviz")
+BiocManager::install("yeastExpData")
+BiocManager::install("BoolNet")
+
+#q1
+#a
+#numbered nodes are the real (e.g. 1,4)
+min(nodes(graph1))
+max(nodes(graph1))
+
+min(nodes(graph2))
+max(nodes(graph2))
+
+min(nodes(graph3))
+max(nodes(graph3))
+
+min(nodes(graph4))
+max(nodes(graph4))
+
+#b
+con_comp_graph2 <- connComp(graph2)
+sum_graph2 <- (lapply(con_comp_graph2, function(x)
+  sum(lengths(x))))
+which(sum_graph2 >7)
+which(sum_graph2 == 7)
+
+con_comp_graph3 <- connComp(graph3)
+sum_graph3 <- (lapply(con_comp_graph3, function(x)
+  sum(lengths(x))))
+which(sum_graph3 >10)
+which(sum_graph3 == 10)
+
+library(Rgraphviz)
+sum_graph2_plot <- RBGL::connectedComp(graph2)
+graph2_plot <- subGraph(sum_graph2_plot[[7]], graph2)
+Rgraphviz::layoutGraph(graph2_plot)
+Rgraphviz::renderGraph(Rgraphviz::layoutGraph(graph2_plot, layoutType = "neato"))
+
+sum_graph3_plot <- RBGL::connectedComp(graph3)
+graph3_plot <- subGraph(sum_graph3_plot[[10]], graph3)
+Rgraphviz::layoutGraph(graph3_plot)
+Rgraphviz::renderGraph(Rgraphviz::layoutGraph(graph3_plot, layoutType = "neato"))
+
+#c
+graph2_degs <- graph::degree(graph2)
+which.max(graph2_degs)
+
+graph3_degs <- graph::degree(graph3)
+which.max(graph3_degs)
+
+graph::adj(graph2, "YCL032W")
+graph::adj(graph3, "YCR057C")
+
+#d
+con_comp_graph2 <- connComp(graph2)
+sum_graph2 <- (lapply(con_comp_graph2, function(x)
+  sum(lengths(x))))
+length_graph2 <- which(sum_graph2 == 1)
+length_graph2
+length(length_graph2)
+
+con_comp_graph3 <- connComp(graph3)
+sum_graph3 <- (lapply(con_comp_graph3, function(x)
+  sum(lengths(x))))
+length_graph3 <- which(sum_graph3 == 1)
+length_graph3
+length(length_graph3)
+
+##################################
+#2
+if (!requireNamespace("BoolNet", quietly = TRUE))
+  install.packages("BoolNet")
+library("BoolNet")
+data(igf) 
+igf
+#a
+data(igf)
+length(igf$genes)
+igf$genes
+
+igf_attractors <- getAttractors(igf)
+length(igf_attractors$attractors)
+igf_attractors$attractors
+
+#b
+#Attractor 1 has 1 state, Attractor 2 has 14 states
+
+igf_attractors
+
+
+#c
+#write out question in word
+
+
+#d
+getBasinOfAttraction <- function(attractorInfo,attractorNo)
+{
+  stopifnot(inherits(attractorInfo,"AttractorInfo") || inherits(attractorInfo,"SymbolicSimulation"))
+  
+  if (missing(attractorNo) || attractorNo <= 0 || attractorNo > length(attractorInfo$attractors))
+    stop("Please provide a valid attractor number!")
+  
+  table <- getTransitionTable(attractorInfo)
+  return(table[which(table$attractorAssignment == attractorNo),,drop=FALSE])
+}
+attractors <- getAttractors(igf)
+print(getBasinOfAttraction(attractors, 2))
+
+
+
+nodes_graph1 <- graph1@nodes
+trial= matrix(, nrow = 6, ncol = 1)
+t(sapply(trial, function(nodes_graph1) list(min = min(nodes_graph1), avg = mean(nodes_graph1), max = max(nodes_graph1))))
+
+
+
+graph_info <- function(graph){
+  info <- igraph.from.graphNEL(graph, unlist.attrs = TRUE)
+  degree_graph <- degree(info)
+  output_mtx1 <- matrix(, ncol = 1, nrow = 6)
+  con_comp_graph <- connComp(graph)
+  sum_comp_graph <- (lapply(con_comp_graph,function(x) sum(lengths(x))))
+  node_count <- max(unlist(sum_comp_graph))
+  rownames(output_mtx1) <- c("Min Deg", "Median Deg", "Mean Deg", "Max Deg", "Connected Components", "Nodes")
+  colnames(output_mtx1) <- ("values")
+  output_mtx1[1, 1] <- min(degree_graph)
+  output_mtx1[2, 1] <- median(degree_graph)
+  output_mtx1[3, 1] <- mean(degree_graph)
+  output_mtx1[4, 1] <- max(degree_graph)
+  output_mtx1[5, 1] <- no.clusters(info)
+  output_mtx1[6, 1] <- node_count
+  return(output_mtx1)
+}
+
+
+network_info <- function(network){
+  info <- print(network)
+  output_mtx <- matrix(, ncol = 1, nrow = 2)
+  rownames(output_mtx) <- c("Genes", "Attractors")
+  colnames(output_mtx) <- ("Values")
+  output_mtx[1, 1] <- length(network$genes)
+  output_mtx[2, 1] <- length(getAttractors(network)) 
+  return(output_mtx)
+}
+
+
+GRNsummary<- function(graphname){
+  igraphname <- igraph.from.graphNEL(graphname, unlist.attrs = TRUE)
+  degreegr <- degree(igraphname)
+  min_d<-min(degreegr)
+  med_d<-median(degreegr)
+  meen_d<-mean(degreegr)
+  max_d<-max(degreegr)
+  clusters<-no.clusters(igraphname)
+  con_comp_gx<-connComp(graphname)
+  sum_comp_gx<-(lapply(con_comp_gx, function(x) sum(lengths(x))))
+  node_count<-max(unlist(sum_comp_gx))
+  tableq3<- data.frame(row.names = c('Min Degree', 'Median Degree',
+                                     'Mean Degree', 'Max Degree',
+                                     'No. Connected Components',
+                                     'Nodes in largest CC'),
+                       'Graph' = c(min_d, med_d, meen_d, max_d, clusters,
+                                   node_count))
+  return (tableq3)
+  
+}
+GRNsummary(graph2)
+
+
